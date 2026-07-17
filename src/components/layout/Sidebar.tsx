@@ -62,7 +62,7 @@ export function Sidebar() {
           onClick={() => setActivePage('dashboard')}
           className="flex items-center gap-1.5 cursor-pointer"
         >
-          <img src="/public/icon2.png" alt="" height={330} width={330} />
+          <img src="/icon2.png" alt="" height={330} width={330} />
         </button>
       </div>
 
