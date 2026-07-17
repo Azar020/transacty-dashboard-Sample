@@ -3,7 +3,7 @@ import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
 
 export function TopBar() {
-  const { environment, theme, toggleTheme } = useApp()
+  const { theme, toggleTheme } = useApp()
 
   return (
     <header className="fixed top-0 right-0 left-[148px] h-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-10 flex items-center justify-between px-6 transition-colors duration-200">
