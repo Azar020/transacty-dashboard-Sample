@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { X, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { wallets } from '@/data/mockData'
+import { useApp } from '@/context/AppContext'
 
 interface RequestPayoutModalProps {
   open: boolean
@@ -10,6 +10,8 @@ interface RequestPayoutModalProps {
 }
 
 export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
+  const { theme } = useApp()
+  const isDark = theme === 'dark'
   const [walletId, setWalletId] = useState(wallets[0].id)
   const [amount, setAmount] = useState('')
   const [destination, setDestination] = useState('')
@@ -53,26 +55,69 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
     onClose()
   }
 
+  const fieldBase: React.CSSProperties = {
+    width: '100%',
+    background: isDark ? 'rgba(255,255,255,0.04)' : '#F8FAFC',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : '#E2E8F0'}`,
+    color: isDark ? '#F1F5F9' : '#111827',
+    borderRadius: '8px',
+    fontSize: '14px',
+    outline: 'none',
+  }
+  const errorBorder = `1px solid ${isDark ? 'rgba(220,38,38,0.50)' : 'rgba(220,38,38,0.40)'}`
+
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-[2px] z-40"
+        className="fixed inset-0 backdrop-blur-[2px] z-40"
+        style={{ background: isDark ? 'rgba(0,0,0,0.60)' : 'rgba(0,0,0,0.35)' }}
         onClick={handleClose}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-md pointer-events-auto animate-[fadeSlideIn_0.18s_ease-out] border border-gray-100 dark:border-gray-800">
+        <div
+          className="rounded-xl w-full max-w-md pointer-events-auto animate-[fadeSlideIn_0.18s_ease-out]"
+          style={{
+            background: isDark ? '#161B22' : '#FFFFFF',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : '#E2E8F0'}`,
+            boxShadow: isDark
+              ? '0 24px 64px rgba(0,0,0,0.50)'
+              : '0 24px 64px rgba(15,23,42,0.15)',
+          }}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
+          <div
+            className="flex items-center justify-between px-5 pt-5 pb-4 border-b"
+            style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0' }}
+          >
             <div>
-              <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">Request Payout</h2>
-              <p className="text-xs text-gray-400 dark:text-gray-600 mt-0.5">Withdraw funds from your merchant pocket</p>
+              <h2
+                className="text-sm font-bold"
+                style={{ color: isDark ? '#F1F5F9' : '#111827' }}
+              >
+                Request Payout
+              </h2>
+              <p
+                className="text-xs mt-0.5"
+                style={{ color: isDark ? 'rgba(255,255,255,0.38)' : '#64748B' }}
+              >
+                Withdraw funds from your merchant pocket
+              </p>
             </div>
             <button
               onClick={handleClose}
-              className="p-1.5 rounded-md text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-md transition-colors cursor-pointer"
+              style={{ color: isDark ? 'rgba(255,255,255,0.38)' : '#94A3B8' }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9'
+                ;(e.currentTarget as HTMLButtonElement).style.color = isDark ? '#F1F5F9' : '#111827'
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                ;(e.currentTarget as HTMLButtonElement).style.color = isDark ? 'rgba(255,255,255,0.38)' : '#94A3B8'
+              }}
             >
               <X size={15} />
             </button>
@@ -80,16 +125,34 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
 
           {success ? (
             <div className="px-5 py-8 flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{
+                  background: isDark ? 'rgba(22,163,74,0.12)' : 'rgba(22,163,74,0.08)',
+                  border: '1px solid rgba(22,163,74,0.20)',
+                }}
+              >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 13L9 17L19 7" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M5 13L9 17L19 7" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Payout Requested!</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p
+                className="text-sm font-semibold"
+                style={{ color: isDark ? '#F1F5F9' : '#111827' }}
+              >
+                Payout Requested!
+              </p>
+              <p
+                className="text-xs"
+                style={{ color: isDark ? 'rgba(255,255,255,0.50)' : '#64748B' }}
+              >
                 Your payout of{' '}
-                <strong>{selectedWallet.symbol} {amount} {selectedWallet.currencyCode}</strong> to{' '}
-                <strong>{destination}</strong> has been submitted for processing.
+                <strong style={{ color: isDark ? '#F1F5F9' : '#111827' }}>
+                  {selectedWallet.symbol} {amount} {selectedWallet.currencyCode}
+                </strong>{' '}
+                to{' '}
+                <strong style={{ color: isDark ? '#F1F5F9' : '#111827' }}>{destination}</strong>
+                {' '}has been submitted for processing.
               </p>
               <Button variant="default" size="md" className="mt-2 w-full" onClick={handleClose}>
                 Done
@@ -99,13 +162,17 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
             <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
               {/* Wallet Select */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                <label
+                  className="block text-xs font-semibold mb-1.5"
+                  style={{ color: isDark ? '#E2E8F0' : '#374151' }}
+                >
                   Wallet
                 </label>
                 <select
                   value={walletId}
                   onChange={(e) => setWalletId(e.target.value)}
-                  className="w-full h-9 px-3 rounded-md border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 cursor-pointer"
+                  className="h-9 px-3 cursor-pointer"
+                  style={fieldBase}
                 >
                   {wallets.map((w) => (
                     <option key={w.id} value={w.id}>
@@ -117,11 +184,20 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
 
               {/* Amount */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Amount <span className="text-gray-400 font-normal">({selectedWallet.currencyCode})</span>
+                <label
+                  className="block text-xs font-semibold mb-1.5"
+                  style={{ color: isDark ? '#E2E8F0' : '#374151' }}
+                >
+                  Amount{' '}
+                  <span style={{ color: isDark ? 'rgba(255,255,255,0.35)' : '#94A3B8', fontWeight: 400 }}>
+                    ({selectedWallet.currencyCode})
+                  </span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400 font-medium">
+                  <span
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium"
+                    style={{ color: isDark ? 'rgba(255,255,255,0.38)' : '#94A3B8' }}
+                  >
                     {selectedWallet.symbol}
                   </span>
                   <input
@@ -131,14 +207,15 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0.00"
-                    className={cn(
-                      'w-full h-9 pl-8 pr-3 rounded-md border text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400',
-                      errors.amount ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-gray-700'
-                    )}
+                    className="h-9 pl-8 pr-3"
+                    style={{
+                      ...fieldBase,
+                      border: errors.amount ? errorBorder : fieldBase.border,
+                    }}
                   />
                 </div>
                 {errors.amount && (
-                  <p className="flex items-center gap-1 mt-1 text-[11px] text-red-500">
+                  <p className="flex items-center gap-1 mt-1 text-[11px]" style={{ color: '#DC2626' }}>
                     <AlertCircle size={11} /> {errors.amount}
                   </p>
                 )}
@@ -146,7 +223,10 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
 
               {/* Destination */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                <label
+                  className="block text-xs font-semibold mb-1.5"
+                  style={{ color: isDark ? '#E2E8F0' : '#374151' }}
+                >
                   Destination Address / Account
                 </label>
                 <input
@@ -154,13 +234,14 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
                   placeholder="e.g. bank account, wallet address..."
-                  className={cn(
-                    'w-full h-9 px-3 rounded-md border text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 placeholder:text-gray-400 dark:placeholder:text-gray-600',
-                    errors.destination ? 'border-red-400 dark:border-red-600' : 'border-gray-200 dark:border-gray-700'
-                  )}
+                  className="h-9 px-3"
+                  style={{
+                    ...fieldBase,
+                    border: errors.destination ? errorBorder : fieldBase.border,
+                  }}
                 />
                 {errors.destination && (
-                  <p className="flex items-center gap-1 mt-1 text-[11px] text-red-500">
+                  <p className="flex items-center gap-1 mt-1 text-[11px]" style={{ color: '#DC2626' }}>
                     <AlertCircle size={11} /> {errors.destination}
                   </p>
                 )}
@@ -168,15 +249,22 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
 
               {/* Note */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                  Note <span className="text-gray-400 font-normal">(optional)</span>
+                <label
+                  className="block text-xs font-semibold mb-1.5"
+                  style={{ color: isDark ? '#E2E8F0' : '#374151' }}
+                >
+                  Note{' '}
+                  <span style={{ color: isDark ? 'rgba(255,255,255,0.35)' : '#94A3B8', fontWeight: 400 }}>
+                    (optional)
+                  </span>
                 </label>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Add a reference note..."
                   rows={2}
-                  className="w-full px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                  className="px-3 py-2 resize-none"
+                  style={fieldBase}
                 />
               </div>
 
@@ -186,7 +274,6 @@ export function RequestPayoutModal({ open, onClose }: RequestPayoutModalProps) {
                   type="button"
                   variant="outline"
                   size="md"
-                  className="dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                   onClick={handleClose}
                 >
                   Cancel

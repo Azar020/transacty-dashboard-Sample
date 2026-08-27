@@ -1,90 +1,127 @@
 import { walletDistribution } from '@/data/mockData'
-import { useApp } from '@/context/AppContext'
 
-const COLORS = ['#14532d', '#4ade80']
-const TOTAL = walletDistribution.reduce((sum, d) => sum + d.value, 0)
-
-function DonutChart({ isDark }: { isDark: boolean }) {
-  const size = 140
+function DonutChart() {
+  const size = 120
   const cx = size / 2
   const cy = size / 2
-  const outerR = 55
-  const innerR = 38
-  const strokeWidth = outerR - innerR
+  const outerR = 44
+  const innerR = 30
+  const r = (outerR + innerR) / 2
+  const strokeW = outerR - innerR
 
-  let cumulativeAngle = -90
+  const circumference = 2 * Math.PI * r
 
-  const slices = walletDistribution.map((item, index) => {
-    const fraction = item.value / TOTAL
-    const angle = fraction * 360
-    const startAngle = cumulativeAngle
-    cumulativeAngle += angle
-    const endAngle = cumulativeAngle
-
-    const toRad = (deg: number) => (deg * Math.PI) / 180
-    const r = (outerR + innerR) / 2
-
-    const x1 = cx + r * Math.cos(toRad(startAngle))
-    const y1 = cy + r * Math.sin(toRad(startAngle))
-    const x2 = cx + r * Math.cos(toRad(endAngle))
-    const y2 = cy + r * Math.sin(toRad(endAngle))
-
-    const largeArc = angle > 180 ? 1 : 0
-    const d = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`
-
-    return { d, color: COLORS[index], strokeWidth: strokeWidth + 2, key: item.name }
-  })
-
-  const labelColor = isDark ? '#6b7280' : '#9ca3af'
-  const numberColor = isDark ? '#f3f4f6' : '#111827'
+  // Calculate cumulative strokeDashoffsets for multiple segments
+  let cumulativeValue = 0
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {slices.map((slice) => (
-        <path
-          key={slice.key}
-          d={slice.d}
-          fill="none"
-          stroke={slice.color}
-          strokeWidth={slice.strokeWidth}
-          strokeLinecap="butt"
-        />
-      ))}
-      <text x={cx} y={cy - 6} textAnchor="middle" fontSize="9" fill={labelColor}>Wallets</text>
-      <text x={cx} y={cy + 10} textAnchor="middle" fontSize="18" fontWeight="700" fill={numberColor}>4</text>
+      {/* Background track */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke="#F3F4F6"
+        strokeWidth={strokeW}
+      />
+      {/* Multi-colored arcs */}
+      {walletDistribution.map((item) => {
+        const strokeLength = (item.value / 100) * circumference
+        const strokeDashoffset = -((cumulativeValue / 100) * circumference)
+        cumulativeValue += item.value
+
+        return (
+          <circle
+            key={item.name}
+            cx={cx} cy={cy} r={r}
+            fill="none"
+            stroke={item.color}
+            strokeWidth={strokeW}
+            strokeDasharray={`${strokeLength} ${circumference - strokeLength}`}
+            strokeDashoffset={strokeDashoffset}
+            transform={`rotate(-90 ${cx} ${cy})`}
+          />
+        )
+      })}
+      {/* Center label */}
+      <text
+        x={cx} y={cy - 5}
+        textAnchor="middle"
+        fontSize={9}
+        fill="#9CA3AF"
+        fontWeight={500}
+      >
+        Total
+      </text>
+      <text
+        x={cx} y={cy + 12}
+        textAnchor="middle"
+        fontSize={16}
+        fill="#111827"
+        fontWeight={700}
+      >
+        {walletDistribution.length}
+      </text>
     </svg>
   )
 }
 
 export function WalletDistribution() {
-  const { theme } = useApp()
-  const isDark = theme === 'dark'
-
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex flex-col gap-4 h-fit transition-colors duration-200">
+    <div
+      style={{
+        background: '#FFFFFF',
+        border: '1px solid #E5E7EB',
+        borderRadius: 8,
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+      }}
+    >
+      {/* Header */}
       <div>
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Wallet distribution</h2>
-        <p className="text-[11px] text-gray-400 dark:text-gray-600 mt-0.5">Balance share across pockets</p>
+        <h2 style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 2 }}>
+          Wallet distribution
+        </h2>
+        <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+          Share by USD-equivalent available balance
+        </p>
       </div>
 
-      {/* Donut Chart */}
-      <div className="flex justify-center">
-        <DonutChart isDark={isDark} />
+      {/* Donut */}
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0' }}>
+        <DonutChart />
       </div>
 
       {/* Legend */}
-      <div className="space-y-2">
-        {walletDistribution.map((item, index) => (
-          <div key={item.name} className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span
-                className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                style={{ backgroundColor: COLORS[index] }}
-              />
-              <span className="text-[11px] text-gray-700 dark:text-gray-300 font-semibold flex-shrink-0">{item.percentage}</span>
-              <span className="text-[11px] text-gray-500 dark:text-gray-500 truncate">{item.name}</span>
-            </div>
-            <span className="text-[11px] text-gray-700 dark:text-gray-300 font-medium tabular-nums flex-shrink-0">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+        {walletDistribution.map((item) => (
+          <div
+            key={item.name}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}
+          >
+            {/* Color dot */}
+            <span
+              style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: item.color, flexShrink: 0,
+              }}
+            />
+            {/* Name */}
+            <span style={{ color: '#4B5563', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {item.name}
+            </span>
+            {/* Percentage */}
+            <span
+              style={{
+                color: '#6B7280',
+                fontVariantNumeric: 'tabular-nums', flexShrink: 0,
+              }}
+            >
+              {item.percentage}
+            </span>
+            {/* Amount */}
+            <span style={{ fontWeight: 500, color: '#111827', fontVariantNumeric: 'tabular-nums', flexShrink: 0, marginLeft: 4 }}>
               {item.amount}
             </span>
           </div>

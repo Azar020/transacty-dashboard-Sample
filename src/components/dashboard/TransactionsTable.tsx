@@ -1,43 +1,37 @@
 import { useState } from 'react'
-import { Search, ChevronRight, ChevronUp, ChevronDown, X } from 'lucide-react'
+import { ChevronRight, ChevronUp, ChevronDown, X, Search } from 'lucide-react'
 import { transactions as allTransactions, type Transaction } from '@/data/mockData'
-import { cn } from '@/lib/utils'
 import { useApp } from '@/context/AppContext'
 
 type TabValue = 'all' | 'successful' | 'pending' | 'failed'
 type SortKey = 'transactionId' | 'customer' | 'type' | 'amount' | 'status' | 'date'
 type SortDir = 'asc' | 'desc'
 
-const tabs: { value: TabValue; label: string; count: number }[] = [
-  { value: 'all', label: 'All', count: 10 },
-  { value: 'successful', label: 'Successful', count: 2 },
-  { value: 'pending', label: 'Pending', count: 2 },
-  { value: 'failed', label: 'Failed', count: 6 },
+const tabs: { value: TabValue; label: string }[] = [
+  { value: 'all',        label: 'All'        },
+  { value: 'successful', label: 'Successful'  },
+  { value: 'pending',    label: 'Pending'     },
+  { value: 'failed',     label: 'Failed'      },
 ]
 
-function StatusDot({ status }: { status: Transaction['status'] }) {
-  return (
+function StatusBadge({ status }: { status: Transaction['status'] }) {
+  const color =
+    status === 'Success' ? '#16A34A'
+    : status === 'Failed' ? '#DC2626'
+    : '#D97706'
+  const dot = (
     <span
-      className={cn('inline-block w-1.5 h-1.5 rounded-full mr-1 flex-shrink-0', {
-        'bg-emerald-500': status === 'Success',
-        'bg-red-500': status === 'Failed',
-        'bg-yellow-500': status === 'Pending',
-      })}
+      style={{
+        width: 6, height: 6, borderRadius: '50%',
+        background: color, display: 'inline-block',
+        marginRight: 4, flexShrink: 0,
+      }}
     />
   )
-}
-
-function StatusBadge({ status }: { status: Transaction['status'] }) {
   return (
-    <span
-      className={cn('flex items-center text-xs font-medium', {
-        'text-emerald-600 dark:text-emerald-500': status === 'Success',
-        'text-red-600 dark:text-red-500': status === 'Failed',
-        'text-yellow-600 dark:text-yellow-500': status === 'Pending',
-      })}
-    >
-      <StatusDot status={status} />
-      {status} —
+    <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 12, fontWeight: 600, color }}>
+      {dot}
+      {status}
     </span>
   )
 }
@@ -45,65 +39,97 @@ function StatusBadge({ status }: { status: Transaction['status'] }) {
 // ── Transaction Detail Drawer ────────────────────────────────────────────────
 function TransactionDrawer({ tx, onClose }: { tx: Transaction | null; onClose: () => void }) {
   if (!tx) return null
+
+  const statusColor =
+    tx.status === 'Success' ? '#16A34A'
+    : tx.status === 'Failed' ? '#DC2626'
+    : '#D97706'
+  const statusBg =
+    tx.status === 'Success' ? 'rgba(22,163,74,0.07)'
+    : tx.status === 'Failed' ? 'rgba(220,38,38,0.07)'
+    : 'rgba(217,119,6,0.07)'
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 dark:bg-black/50 z-30" onClick={onClose} />
-      <div className="fixed right-0 top-0 bottom-0 z-40 w-[320px] bg-white dark:bg-gray-900 shadow-2xl flex flex-col animate-[slideInRight_0.2s_ease-out]">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+      <div
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)', zIndex: 30 }}
+        onClick={onClose}
+      />
+      <div
+        style={{
+          position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 40,
+          width: 320, display: 'flex', flexDirection: 'column',
+          background: '#FFFFFF',
+          borderLeft: '1px solid #E5E7EB',
+          boxShadow: '-4px 0 32px rgba(15,23,42,0.10)',
+          animation: 'slideInRight 0.2s ease-out',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '14px 20px', borderBottom: '1px solid #E5E7EB',
+          }}
+        >
           <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Transaction Details</h3>
-            <p className="text-[11px] text-gray-400 dark:text-gray-600 font-mono mt-0.5 break-all">{tx.transactionId}</p>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Transaction Details</h3>
+            <p style={{ fontSize: 11, fontFamily: 'monospace', color: '#9CA3AF', marginTop: 2, wordBreak: 'break-all' }}>
+              {tx.transactionId}
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+            style={{ padding: 6, borderRadius: 6, cursor: 'pointer', color: '#9CA3AF', background: 'transparent' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#F3F4F6' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
           >
             <X size={15} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Status</span>
-            <span
-              className={cn('flex items-center gap-1.5 text-xs font-semibold', {
-                'text-emerald-600 dark:text-emerald-500': tx.status === 'Success',
-                'text-red-600 dark:text-red-500': tx.status === 'Failed',
-                'text-yellow-600 dark:text-yellow-500': tx.status === 'Pending',
-              })}
-            >
-              <span
-                className={cn('w-2 h-2 rounded-full', {
-                  'bg-emerald-500': tx.status === 'Success',
-                  'bg-red-500': tx.status === 'Failed',
-                  'bg-yellow-500': tx.status === 'Pending',
-                })}
-              />
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '10px 14px', borderRadius: 8,
+              background: statusBg, border: `1px solid ${statusColor}22`,
+            }}
+          >
+            <span style={{ fontSize: 12, color: '#6B7280' }}>Status</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: statusColor }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: statusColor }} />
               {tx.status}
             </span>
           </div>
 
           {[
             { label: 'Customer', value: tx.customer, mono: true },
-            { label: 'Type', value: tx.type },
-            { label: 'Amount', value: tx.amount },
-            { label: 'Settled', value: tx.settled },
-            { label: 'Fee', value: tx.fee ?? '—' },
-            { label: 'Date', value: tx.date },
+            { label: 'Type',     value: tx.type },
+            { label: 'Amount',   value: tx.amount },
+            { label: 'Settled',  value: tx.settled },
+            { label: 'Fee',      value: tx.fee ?? '—' },
+            { label: 'Date',     value: tx.date },
           ].map(({ label, value, mono }) => (
-            <div key={label} className="flex flex-col gap-0.5">
-              <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-600 uppercase tracking-wider">{label}</span>
-              <span className={cn('text-sm text-gray-800 dark:text-gray-200', mono && 'font-mono text-xs break-all')}>
+            <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF' }}>
+                {label}
+              </span>
+              <span style={{ fontSize: 13, color: '#111827', fontFamily: mono ? 'monospace' : undefined, wordBreak: 'break-all' }}>
                 {value}
               </span>
             </div>
           ))}
         </div>
 
-        <div className="border-t border-gray-100 dark:border-gray-800 px-5 py-3">
+        <div style={{ borderTop: '1px solid #E5E7EB', padding: '10px 20px' }}>
           <button
             onClick={onClose}
-            className="w-full py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
+            style={{
+              width: '100%', padding: '8px', fontSize: 12, fontWeight: 600,
+              borderRadius: 6, cursor: 'pointer', color: '#6B7280', background: 'transparent',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#F9FAFB' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
           >
             Close
           </button>
@@ -113,49 +139,68 @@ function TransactionDrawer({ tx, onClose }: { tx: Transaction | null; onClose: (
   )
 }
 
-// ── Sort Icon ────────────────────────────────────────────────────────────────
 function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
-  if (col !== sortKey) return <ChevronDown size={10} className="text-gray-300 dark:text-gray-700 ml-0.5" />
+  if (col !== sortKey) return <ChevronDown size={10} style={{ marginLeft: 2, opacity: 0.3 }} />
   return sortDir === 'asc'
-    ? <ChevronUp size={10} className="text-gray-700 dark:text-gray-300 ml-0.5" />
-    : <ChevronDown size={10} className="text-gray-700 dark:text-gray-300 ml-0.5" />
+    ? <ChevronUp size={10} style={{ marginLeft: 2 }} />
+    : <ChevronDown size={10} style={{ marginLeft: 2 }} />
 }
 
-// ── Main Component ───────────────────────────────────────────────────────────
-export function TransactionsTable() {
+// ── Props for use from both Dashboard and Wallet page ──────────────────────────
+interface TransactionsTableProps {
+  /** Optional override dataset — when omitted, uses all transactions from mockData */
+  data?: Transaction[]
+  /** Title to show instead of "Recent activity" */
+  title?: string
+  /** Subtitle/description */
+  description?: string
+  /** Whether to show the "View all" right-side header link */
+  showViewAll?: boolean
+  /** Whether to show pagination */
+  showPagination?: boolean
+  /** Per-page options */
+  perPage?: number
+}
+
+export function TransactionsTable({
+  data,
+  title = 'Recent activity',
+  description,
+  showViewAll = true,
+  showPagination = false,
+  perPage: defaultPerPage = 10,
+}: TransactionsTableProps) {
   const { environment } = useApp()
   const [activeTab, setActiveTab] = useState<TabValue>('all')
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [perPage, setPerPage] = useState(defaultPerPage)
+
+  const source = data ?? allTransactions
 
   const handleSort = (key: SortKey) => {
-    if (key === sortKey) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortKey(key)
-      setSortDir('asc')
-    }
+    if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortKey(key); setSortDir('asc') }
   }
 
   const query = search.toLowerCase().trim()
 
-  const filtered = allTransactions
+  const filtered = source
     .filter((t) => {
       const matchesTab =
         activeTab === 'all' ||
         (activeTab === 'successful' && t.status === 'Success') ||
-        (activeTab === 'failed' && t.status === 'Failed') ||
-        (activeTab === 'pending' && t.status === 'Pending')
-
+        (activeTab === 'failed'     && t.status === 'Failed')  ||
+        (activeTab === 'pending'    && t.status === 'Pending')
       const matchesSearch =
         !query ||
         t.transactionId.toLowerCase().includes(query) ||
         t.customer.toLowerCase().includes(query) ||
         t.type.toLowerCase().includes(query) ||
         t.status.toLowerCase().includes(query)
-
       return matchesTab && matchesSearch
     })
     .sort((a, b) => {
@@ -166,150 +211,230 @@ export function TransactionsTable() {
       return 0
     })
 
-  const SortTh = ({
-    col, label, className, align = 'left',
-  }: { col: SortKey; label: string; className?: string; align?: 'left' | 'right' }) => (
+  // Tab counts from the source data
+  const tabCounts = {
+    all:        source.length,
+    successful: source.filter((t) => t.status === 'Success').length,
+    pending:    source.filter((t) => t.status === 'Pending').length,
+    failed:     source.filter((t) => t.status === 'Failed').length,
+  }
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
+  const paginated = showPagination ? filtered.slice((currentPage - 1) * perPage, currentPage * perPage) : filtered
+
+  const thStyle: React.CSSProperties = {
+    fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+    letterSpacing: '0.07em', color: '#9CA3AF',
+    padding: '9px 12px', textAlign: 'left',
+    cursor: 'pointer', userSelect: 'none',
+    whiteSpace: 'nowrap',
+  }
+
+  const SortTh = ({ col, label, align = 'left' }: { col: SortKey; label: string; align?: 'left' | 'right' }) => (
     <th
       onClick={() => handleSort(col)}
-      className={cn(
-        'py-2.5 font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide text-[10px] cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300 transition-colors',
-        align === 'right' ? 'px-3 text-right' : 'px-3 text-left',
-        className
-      )}
+      style={{ ...thStyle, textAlign: align }}
     >
-      <span className={cn('inline-flex items-center gap-0.5', align === 'right' && 'flex-row-reverse')}>
+      <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+        {align === 'right' && <SortIcon col={col} sortKey={sortKey} sortDir={sortDir} />}
         {label}
-        <SortIcon col={col} sortKey={sortKey} sortDir={sortDir} />
+        {align === 'left'  && <SortIcon col={col} sortKey={sortKey} sortDir={sortDir} />}
       </span>
     </th>
   )
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden transition-colors duration-200">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+      <div
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E5E7EB',
+          borderRadius: 8,
+          overflow: 'hidden',
+        }}
+      >
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <div
+          style={{
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+            padding: '14px 16px 10px',
+          }}
+        >
           <div>
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Recent activity</h2>
-            <p className="text-xs text-gray-400 dark:text-gray-600 mt-0.5">
-              Last 10 transactions · synced just now.{' '}
-              <button className="text-gray-700 dark:text-gray-400 underline cursor-pointer hover:text-gray-900 dark:hover:text-gray-200">
-                View all
-              </button>{' '}
-              for full history.
-            </p>
+            <h2 style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{title}</h2>
+            {description ? (
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{description}</p>
+            ) : (
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+                Last {source.length} transactions · synced just now.{' '}
+                {showViewAll && (
+                  <button style={{ color: '#4F46E5', textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none', fontSize: 11 }}>
+                    View all
+                  </button>
+                )}{' '}
+                {showViewAll ? 'for full history.' : ''}
+              </p>
+            )}
           </div>
-          <div className="flex items-center gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
             {/* Search */}
-            <div className="relative">
-              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-600 pointer-events-none" />
+            <div style={{ position: 'relative' }}>
+              <Search
+                size={12}
+                style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', pointerEvents: 'none' }}
+              />
               <input
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search transactions…"
-                className="h-7 pl-7 pr-3 text-xs rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-900 dark:focus:ring-gray-400 focus:bg-white dark:focus:bg-gray-800 w-[180px] transition-all"
+                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
+                placeholder="Search…"
+                style={{
+                  height: 28, paddingLeft: 28, paddingRight: search ? 26 : 10,
+                  fontSize: 12, borderRadius: 6,
+                  border: '1px solid #E5E7EB', background: '#F9FAFB',
+                  color: '#111827', outline: 'none', width: 160,
+                }}
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer"
+                  style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   <X size={11} />
                 </button>
               )}
             </div>
-            <button className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 cursor-pointer whitespace-nowrap">
-              View all <ChevronRight size={12} />
-            </button>
+            {showViewAll && (
+              <button
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 2,
+                  fontSize: 12, color: '#6B7280', cursor: 'pointer', background: 'none', border: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#4F46E5' }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#6B7280' }}
+              >
+                View all <ChevronRight size={12} />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center px-4 border-b border-gray-200 dark:border-gray-800">
-          {tabs.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setActiveTab(tab.value)}
-              className={cn(
-                'flex items-center gap-1.5 px-2.5 py-2 text-xs font-medium border-b-2 transition-colors cursor-pointer -mb-px',
-                activeTab === tab.value
-                  ? 'border-gray-900 dark:border-gray-100 text-gray-900 dark:text-gray-100'
-                  : 'border-transparent text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-              )}
-            >
-              {tab.label}
-              <span
-                className={cn(
-                  'inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold',
-                  activeTab === tab.value
-                    ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500'
-                )}
+        {/* ── Tabs ────────────────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #E5E7EB', padding: '0 16px' }}>
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.value
+            const count = tabCounts[tab.value]
+            return (
+              <button
+                key={tab.value}
+                onClick={() => { setActiveTab(tab.value); setCurrentPage(1) }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '7px 10px', fontSize: 12, fontWeight: isActive ? 600 : 400,
+                  color: isActive ? '#111827' : '#9CA3AF',
+                  borderBottom: isActive ? '2px solid #111827' : '2px solid transparent',
+                  marginBottom: -1,
+                  background: 'transparent', cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
               >
-                {tab.count}
-              </span>
-            </button>
-          ))}
+                {tab.label}
+                <span
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 18, height: 18, borderRadius: '50%',
+                    fontSize: 10, fontWeight: 700,
+                    background: isActive ? '#111827' : '#F3F4F6',
+                    color: isActive ? '#FFFFFF' : '#9CA3AF',
+                  }}
+                >
+                  {count}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+        {/* ── Table ───────────────────────────────────────────────────────── */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
-                <SortTh col="transactionId" label="Transaction" className="pl-4" />
-                <SortTh col="customer" label="Customer" />
-                <SortTh col="type" label="Type" />
-                <SortTh col="amount" label="Amount" align="right" />
-                <th className="px-3 py-2.5 text-right font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide text-[10px]">
-                  Settled
-                </th>
-                <th className="px-3 py-2.5 text-right font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide text-[10px]">
-                  Fee
-                </th>
-                <SortTh col="status" label="Status" />
-                <SortTh col="date" label="Date" align="right" />
+              <tr style={{ background: '#FAFAFA', borderBottom: '1px solid #E5E7EB' }}>
+                <SortTh col="transactionId" label="TRANSACTION ID" />
+                <SortTh col="customer" label="CUSTOMER" />
+                <SortTh col="type" label="TYPE" />
+                <SortTh col="amount" label="AMOUNT" align="right" />
+                <th style={{ ...thStyle, textAlign: 'right' }}>SETTLED</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>FEE</th>
+                <SortTh col="status" label="STATUS" />
+                <SortTh col="date" label="DATE" align="right" />
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-xs text-gray-400 dark:text-gray-600">
+                  <td colSpan={8} style={{ padding: '28px 16px', textAlign: 'center', fontSize: 12, color: '#9CA3AF' }}>
                     No transactions match your search.
                   </td>
                 </tr>
               ) : (
-                filtered.map((tx) => (
+                paginated.map((tx) => (
                   <tr
                     key={tx.id}
                     onClick={() => setSelectedTx(tx)}
-                    className="border-b border-gray-100 dark:border-gray-800 hover:bg-blue-50/30 dark:hover:bg-gray-800/60 transition-colors cursor-pointer group"
+                    style={{ borderBottom: '1px solid #F3F4F6', cursor: 'pointer', transition: 'background 0.1s' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = '#FAFAFA' }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
-                    <td className="pl-4 pr-3 py-2.5 text-gray-700 dark:text-gray-300 font-mono text-[11px] w-[130px] min-w-[130px]">
+                    <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 12, color: '#374151', minWidth: 130 }}>
                       {tx.transactionId}
                     </td>
-                    <td className="px-3 py-2.5 text-gray-600 dark:text-gray-400 font-mono text-[11px] w-[120px] min-w-[120px]">
+                    <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: 11, color: '#6B7280', minWidth: 140, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {tx.customer}
                     </td>
-                    <td className="px-3 py-2.5 w-[140px] min-w-[140px]">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[11px] font-medium group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
+                    <td style={{ padding: '10px 12px', minWidth: 140 }}>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          padding: '2px 8px',
+                          fontSize: 11, borderRadius: 4,
+                          background: '#F3F4F6',
+                          color: '#374151',
+                          border: '1px solid #E5E7EB',
+                        }}
+                      >
                         {tx.type}
                       </span>
                     </td>
-                    <td className={cn('px-3 py-2.5 text-right text-[11px] w-[90px]', tx.isStrikethrough ? 'line-through text-gray-400 dark:text-gray-700' : 'text-gray-700 dark:text-gray-300')}>
+                    <td
+                      style={{
+                        padding: '10px 12px', textAlign: 'right', fontSize: 12,
+                        color: tx.isStrikethrough ? '#CBD5E1' : '#111827',
+                        textDecoration: tx.isStrikethrough ? 'line-through' : undefined,
+                        minWidth: 90, fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
                       {tx.amount}
                     </td>
-                    <td className={cn('px-3 py-2.5 text-right text-[11px] w-[90px]', tx.isStrikethrough ? 'line-through text-gray-400 dark:text-gray-700' : 'text-gray-700 dark:text-gray-300')}>
+                    <td
+                      style={{
+                        padding: '10px 12px', textAlign: 'right', fontSize: 12,
+                        color: tx.isStrikethrough ? '#CBD5E1' : '#6B7280',
+                        textDecoration: tx.isStrikethrough ? 'line-through' : undefined,
+                        minWidth: 90, fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
                       {tx.settled}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-gray-700 dark:text-gray-300 text-[11px] w-[70px]">
-                      {tx.fee ?? <span className="text-gray-300 dark:text-gray-700">—</span>}
+                    <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: 12, color: '#9CA3AF', minWidth: 70, fontVariantNumeric: 'tabular-nums' }}>
+                      {tx.fee ?? <span style={{ color: '#D1D5DB' }}>—</span>}
                     </td>
-                    <td className="px-3 py-2.5 w-[90px]">
+                    <td style={{ padding: '10px 12px', minWidth: 90 }}>
                       <StatusBadge status={tx.status} />
                     </td>
-                    <td className="px-3 py-2.5 text-right text-gray-500 dark:text-gray-500 text-[11px] w-[100px]">
+                    <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, color: '#9CA3AF', minWidth: 110, whiteSpace: 'nowrap' }}>
                       {tx.date}
                     </td>
                   </tr>
@@ -319,20 +444,93 @@ export function TransactionsTable() {
           </table>
         </div>
 
-        {/* Environment banner */}
-        {environment === 'test' ? (
-          <div className="px-4 py-2 bg-red-50 dark:bg-red-950/30 border-t border-red-100 dark:border-red-900/50">
-            <p className="text-xs text-red-600 dark:text-red-500 text-center font-medium">
-              You are currently in Test Mode.
-            </p>
+        {/* ── Footer: Pagination + Test mode ──────────────────────────────── */}
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '8px 14px',
+            borderTop: '1px solid #F3F4F6',
+            background: '#FAFAFA',
+            flexWrap: 'wrap',
+            gap: 8,
+          }}
+        >
+          {/* Left: count + test mode badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+              {filtered.length === 0
+                ? 'No results'
+                : showPagination
+                  ? `Showing ${(currentPage - 1) * perPage + 1}–${Math.min(currentPage * perPage, filtered.length)} of ${filtered.length}`
+                  : `Showing ${filtered.length}`}
+            </span>
+            {environment === 'test' && (
+              <span
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  fontSize: 10, fontWeight: 600,
+                  padding: '2px 7px', borderRadius: 99,
+                  background: 'rgba(217,119,6,0.08)', border: '1px solid rgba(217,119,6,0.22)',
+                  color: '#92400E',
+                }}
+              >
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#D97706', display: 'inline-block' }} />
+                Test mode
+              </span>
+            )}
           </div>
-        ) : (
-          <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-950/30 border-t border-emerald-100 dark:border-emerald-900/50">
-            <p className="text-xs text-emerald-700 dark:text-emerald-500 text-center font-medium">
-              ● You are in Live Mode — real transactions are active.
-            </p>
-          </div>
-        )}
+
+          {/* Right: pagination controls */}
+          {showPagination && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {/* Per-page selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <select
+                  value={perPage}
+                  onChange={(e) => { setPerPage(Number(e.target.value)); setCurrentPage(1) }}
+                  style={{
+                    fontSize: 11, color: '#374151', border: '1px solid #E5E7EB',
+                    borderRadius: 4, padding: '2px 4px', background: '#FFFFFF', cursor: 'pointer',
+                  }}
+                >
+                  {[5, 10, 20, 50].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                <span style={{ fontSize: 11, color: '#9CA3AF' }}>per page</span>
+              </div>
+              <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    fontSize: 11, padding: '2px 8px', borderRadius: 4,
+                    border: '1px solid #E5E7EB', background: currentPage === 1 ? '#F9FAFB' : '#FFFFFF',
+                    color: currentPage === 1 ? '#D1D5DB' : '#374151',
+                    cursor: currentPage === 1 ? 'default' : 'pointer',
+                  }}
+                >
+                  Prev
+                </button>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    fontSize: 11, padding: '2px 8px', borderRadius: 4,
+                    border: '1px solid #E5E7EB', background: currentPage === totalPages ? '#F9FAFB' : '#FFFFFF',
+                    color: currentPage === totalPages ? '#D1D5DB' : '#374151',
+                    cursor: currentPage === totalPages ? 'default' : 'pointer',
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <TransactionDrawer tx={selectedTx} onClose={() => setSelectedTx(null)} />

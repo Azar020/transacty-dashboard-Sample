@@ -10,10 +10,13 @@ interface AppState {
   isRefreshing: boolean
   activePage: ActivePage
   theme: Theme
+  selectedWalletCode: string
   toggleHideBalances: () => void
   setEnvironment: (env: Environment) => void
   refreshBalances: () => void
   setActivePage: (page: ActivePage) => void
+  setSelectedWalletCode: (code: string) => void
+  navigateToWallet: (code: string) => void
   toggleTheme: () => void
 }
 
@@ -24,6 +27,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [environment, setEnvironment] = useState<Environment>('test')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [activePage, setActivePage] = useState<ActivePage>('dashboard')
+  const [selectedWalletCode, setSelectedWalletCode] = useState<string>('BDT')
   const [theme, setTheme] = useState<Theme>(() => {
     // Persist theme preference across sessions
     return (localStorage.getItem('transacty-theme') as Theme) ?? 'light'
@@ -49,6 +53,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setIsRefreshing(false), 1800)
   }, [])
 
+  const navigateToWallet = useCallback((code: string) => {
+    setSelectedWalletCode(code)
+    setActivePage('wallets')
+  }, [])
+
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
   }, [])
@@ -61,10 +70,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isRefreshing,
         activePage,
         theme,
+        selectedWalletCode,
         toggleHideBalances,
         setEnvironment,
         refreshBalances,
         setActivePage,
+        setSelectedWalletCode,
+        navigateToWallet,
         toggleTheme,
       }}
     >
